@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>WebGL</title>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+
+        in vec4 aPosition;
+        in vec4 aNormal;
+        out vec3 N, L, E;
+        
+        uniform mat4 uModel;
+        uniform mat4 uView;
+        uniform mat4 uProjection;
+
+        uniform vec4 uLightPosition;
+        
+        void main()
+        {
+            mat4 uModelViewMatrix = uView * uModel;
+
+            vec3 pos = (uModelViewMatrix * aPosition).xyz;
+        
+            //check for directional light
+            if(uLightPosition.w == 0.0) L = normalize(uLightPosition.xyz);
+            else L = normalize( uLightPosition.xyz - pos );
+        
+            E =  -normalize(pos);
+            N = normalize((uModelViewMatrix * vec4(aNormal.xyz, 0)).xyz);
+        
+            gl_Position = uProjection * uModelViewMatrix * aPosition;
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+
+        precision mediump float;
+        
+        uniform vec4 uAmbientProduct;
+        uniform vec4 uDiffuseProduct;
+        uniform vec4 uSpecularProduct;
+        uniform float uShininess;
+        
+        in vec3 N, L, E;
+        out vec4 fColor;
+        
+        void main()
+        {
+            vec3 normalizedN = normalize(N);
+
+            vec3 H = normalize( L + E );
+            vec4 ambient = uAmbientProduct;
+        
+            float Kd = max( dot(L, normalizedN), 0.0 );
+            vec4  diffuse = Kd*uDiffuseProduct;
+        
+            float Ks = pow( max(dot(normalizedN, H), 0.0), uShininess );
+            vec4  specular = Ks * uSpecularProduct;
+        
+            if( dot(L, normalizedN) < 0.0 ) specular = vec4(0.0, 0.0, 0.0, 1.0);
+        
+            fColor = ambient + diffuse +specular;
+            fColor.a = 1.0;
+
+        }
+    </script>
+
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MVnew.js"></script>
+    <script type="text/javascript" src="pig.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+</head>
+
+<body>
+    <canvas id="gl-canvas" width="960" height="540"></canvas>
+
+    <br>
+    <label for="materialDiffuseR" id="materialDiffuseLabel">Material Diffuse RGB (0.10, 0.25, 1.00):</label>
+    <input type="range" min="0" max="1" step="0.01" value="0.1" id="materialDiffuseR">
+    <input type="range" min="0" max="1" step="0.01" value="0.25" id="materialDiffuseG">
+    <input type="range" min="0" max="1" step="0.01" value="1.0" id="materialDiffuseB">
+
+    <br>
+    <label for="materialSpecularR" id="materialSpecularLabel">Material Specular RGB (1.00, 1.00, 1.00):</label>
+    <input type="range" min="0" max="1" step="0.01" value="1.0" id="materialSpecularR">
+    <input type="range" min="0" max="1" step="0.01" value="1.0" id="materialSpecularG">
+    <input type="range" min="0" max="1" step="0.01" value="1.0" id="materialSpecularB">
+
+    <br>
+    <label for="materialShininess" id="materialShininessLabel">Material Shininess (100):</label>
+    <input type="range" min="1" max="500" step="1" value="100" id="materialShininess">
+
+</body>
+
+</html>

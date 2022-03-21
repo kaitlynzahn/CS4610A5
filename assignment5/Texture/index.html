@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>WebGL</title>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+        
+        in vec4 aPosition;
+
+        uniform mat4 uModel;
+        uniform mat4 uView;
+        uniform mat4 uProjection;
+
+        in vec2 aUV;
+
+        out vec2 vUV;
+        
+        void main()
+        {
+            gl_Position = uProjection * uView * uModel * aPosition;
+            vUV = aUV;
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        
+        precision mediump float;
+        
+        out vec4 fColor;
+
+        in vec2 vUV;
+
+        uniform sampler2D uTextureMap;
+        
+        void main()
+        {
+            vec2 uv = vUV;
+            uv.y = 1.0 - uv.y;
+            fColor = texture(uTextureMap, uv);
+        }
+    </script>
+
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MVnew.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+</head>
+
+<body>
+    <canvas id="gl-canvas" width="960" height="540"></canvas>
+</body>
+
+</html>
